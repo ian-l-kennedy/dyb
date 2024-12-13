@@ -1,0 +1,61 @@
+name: tests
+
+on:
+  pull_request:
+    branches: ["*"]
+  push:
+    branches: [main]
+
+jobs:
+  bats_test_suite_for_bash_source:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git build-essential cmake curl libcurl4-openssl-dev libdw-dev libiberty-dev zlib1g-dev
+      - name: Install Bats from source
+        run: |
+          git clone https://github.com/bats-core/bats-core.git
+          cd bats-core
+          sudo ./install.sh /usr/local
+          cd ..
+          rm -rf bats-core
+      - name: Install kcov from source
+        run: |
+          git clone https://github.com/SimonKagstrom/kcov.git
+          cd kcov
+          mkdir build
+          cd build
+          cmake ..
+          make
+          sudo make install
+          cd ../..
+          rm -rf kcov
+      - name: Checkout the repository.
+        uses: actions/checkout@v4
+      - name: Run bats tests.
+        run: |
+          export TMPDIR=$(mktemp -d)
+          echo "TMPDIR set to $TMPDIR"
+          export PATH=$(pwd)/src:$PATH
+          echo "Starting test execution..."
+          mkdir -p coverage
+          kcov --include-path=src coverage bats --show-output-of-passing-tests --print-output-on-failure --timing test
+          echo "Test execution and coverage report generation completed."
+          echo "Listing coverage directory contents:"
+          ls -al coverage
+      - name: Upload coverage reports to Codecov.
+        if: always()
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: coverage
+          fail_ci_if_error: true
+      # - name: Upload coverage reports to Codecov.
+      #   if: always()
+      #   uses: codecov/codecov-action@v5
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     directory: coverage
+      #     fail_ci_if_error: true
