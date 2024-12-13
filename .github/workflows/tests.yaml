@@ -41,21 +41,14 @@ jobs:
           export PATH=$(pwd)/src:$PATH
           echo "Starting test execution..."
           mkdir -p coverage
-          kcov --include-path=src coverage bats --show-output-of-passing-tests --print-output-on-failure --timing test
+          kcov --include-path=src coverage bats --print-output-on-failure --timing test
           echo "Test execution and coverage report generation completed."
           echo "Listing coverage directory contents:"
           ls -al coverage
       - name: Upload coverage reports to Codecov.
         if: always()
-        uses: codecov/codecov-action@v4.0.1
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           directory: coverage
           fail_ci_if_error: true
-      # - name: Upload coverage reports to Codecov.
-      #   if: always()
-      #   uses: codecov/codecov-action@v5
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     directory: coverage
-      #     fail_ci_if_error: true

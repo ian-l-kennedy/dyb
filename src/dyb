@@ -662,8 +662,22 @@ set -eou pipefail
 path_to_invoke_dir_or_pwd=$(pwd)
 DEBUG "Present working directory: ${path_to_invoke_dir_or_pwd}"
 
-REQUIRE_COMMAND jq
-DEBUG "REQUIRE_COMMAND jq completed ..."
+REQUIRE_COMMAND egrep
+DEBUG "REQUIRE_COMMAND egrep completed ..."
+REQUIRE_COMMAND awk
+DEBUG "REQUIRE_COMMAND awk completed ..."
+REQUIRE_COMMAND sed
+DEBUG "REQUIRE_COMMAND sed completed ..."
+REQUIRE_COMMAND yq
+DEBUG "REQUIRE_COMMAND yq completed ..."
+REQUIRE_COMMAND id
+DEBUG "REQUIRE_COMMAND id completed ..."
+REQUIRE_COMMAND xargs
+DEBUG "REQUIRE_COMMAND xargs completed ..."
+REQUIRE_COMMAND dirname
+DEBUG "REQUIRE_COMMAND dirname completed ..."
+REQUIRE_COMMAND cat
+DEBUG "REQUIRE_COMMAND cat completed ..."
 REQUIRE_COMMAND docker
 DEBUG "REQUIRE_COMMAND docker completed ..."
 
@@ -712,6 +726,11 @@ fi
 
 echo "File contents (BASH_EVALUATED_YAML):"
 echo "${bash_evaluated_yaml}" | yq '.'
+
+if ! echo "${bash_evaluated_yaml}" | yq eval >/dev/null 2>&1; then
+    ERROR "Invalid YAML syntax in $path_to_dyb_yaml_file"
+    exit 1
+fi
 
 docker_image_tag=$(check_docker_image_tag "${bash_evaluated_yaml}")
 DEBUG "docker_image_tag: $docker_image_tag"

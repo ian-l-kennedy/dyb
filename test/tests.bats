@@ -286,6 +286,39 @@ function clean_tests() {
     clean_tests
 }
 
+@test "test_field_docker_build_params_append_with_bash_commands_list" {
+    # Call the pre-test function
+    prep_tests
+
+    export PATH=$(dirname $(pwd))/src:$PATH
+    yml=dyb.yml
+    rm -f ${yml}
+
+    # Create a valid YAML file with bash commands
+    touch ${yml}
+    echo 'docker_build_params_append: docker-image' >>${yml}
+    echo 'docker_build_params_append:' >>${yml}
+    echo '  - $(echo "--quiet")' >>${yml}
+    echo '  - $(echo '--platform=linux/amd64')' >>${yml}
+    echo 'docker_run_params_append:' >>${yml}
+    echo '  - $(echo "--quiet")' >>${yml}
+    echo '  - $(echo "-v=/tmp:/tmp:rw")' >>${yml}
+
+    # Run the dyb command
+    dyb echo "hello world"
+    [ "$?" -eq 0 ]
+
+    # Verify that the Docker image was created
+    docker images | grep -q "valid_image"
+    [ "$?" -eq 0 ]
+
+    # Cleanup: Remove the created Docker image
+    docker rmi -f valid_image 2>/dev/null || true
+
+    # Call the post-test function
+    clean_tests
+}
+
 @test "test_dyb_with_missing_yaml" {
     # Call the pre-test function
     prep_tests
